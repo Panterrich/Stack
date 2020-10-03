@@ -9,7 +9,7 @@
 #ifdef DOUBLE_T
     const double Poison = NAN;
     typedef double element_t;
-    //#define COMPARE isnan(a) // На всякий случай фишка
+    //#define COMPARE isnan(a) /}/ На всякий случай фишка
 #endif
 
 #ifdef INT_T
@@ -22,9 +22,20 @@
     typedef char element_t;
 #endif
 
-#define ASSERT_OK(a) if (Stack_ERROR(a)) {Stack_dump(a); abort();}
+#define ASSERT_OK(a) if (Stack_ERROR(a))                                                                            \
+                        {                                                                                           \
+                            FILE* log = fopen("log.txt", "a");                                                      \
+                            assert(log != 0);                                                                       \
+                            fprintf(log, "ERROR: file %s line %d function %s\n", __FILE__, __LINE__, __FUNCTION__); \
+                            Stack_dump(log, a);                                                                     \
+                            abort();                                                                                \
+                        }
 
-//#define asserted || printf("ERROR on %d\n", __LINE__)
+
+#define case_of_switch(enum_const) case enum_const return #enum_const;
+//===================================================
+
+const unsigned long long Canary = 0xBADF00DDEADBEAF;
 
 //===================================================
 
@@ -46,7 +57,9 @@ enum ERROR
     NEGATIVE_SIZE,
     NEGATIVE_CAPACITY,
     NULL_POINTER_TO_ARRAY,
-    ARRAY_AND_STRUCTURE_POINTERS_MATCHED
+    ARRAY_AND_STRUCTURE_POINTERS_MATCHED,
+    REPEATED_CONSTRUCTION,
+    WRONG_SIZE
 };
 
 //===================================================
@@ -58,13 +71,17 @@ element_t Stack_pop(struct Stack* stk);
 
 void Stack_reallocation_memory(struct Stack* stk);
 
-void Stack_distruct(struct Stack* stk);
+void Stack_destruct(struct Stack* stk);
 
 void NULL_check(struct Stack* stk);
 
 int Stack_ERROR(struct Stack* stk);
 
-void Stack_dump(struct Stack* stk);
+void Stack_dump(FILE* file, struct Stack* stk);
+
+void Poison_filling(struct Stack* stk, size_t start, size_t end);
+
+void Stack_reverse_reallocation_memory(struct Stack* stk);
 //===================================================
 
 int main()
@@ -73,25 +90,19 @@ int main()
     Stack_construct(&stk, 1);
 
 
-
-    Stack_distruct(&stk);
+    Stack_destruct(&stk);
 }
 
 //===================================================
 void Stack_construct(struct Stack* stk, size_t capacity)
 {
     NULL_check(stk);
+    
+    static size_t count_construct = 0;
 
-    if (capacity < 0)
-    {
-        stk->error = NEGATIVE_CAPACITY;
-    }
-    
-    else if (capacity == 0)
-    {
-        stk->error = NULL_ARRAY;
-    }
-    
+    if      (count_construct > 0)   stk->error = REPEATED_CONSTRUCTION;
+    else if (capacity < 0)          stk->error = NEGATIVE_CAPACITY;
+    else if (capacity == 0)         stk->error = NULL_ARRAY;
     else
     {
         stk->capacity = capacity;
@@ -106,9 +117,12 @@ void Stack_construct(struct Stack* stk, size_t capacity)
         {
             stk->size = 0;
             stk->error = 0;
+            count_construct++;
+
+            Poison_filling(stk, stk->size, stk->capacity);
         }
     }
-
+    
     ASSERT_OK(stk)
 }
 
@@ -130,33 +144,37 @@ element_t Stack_pop(struct Stack* stk)
 {
     assert(stk != nullptr);
 
+    Stack_reverse_reallocation_memory(stk);
+
     return (stk->data[--(stk->size)]);
 }
 
 void Stack_reallocation_memory(struct Stack* stk)
 {
-     if (stk->size == (stk->capacity - 1))
+    NULL_check(stk);
+
+    if (stk->size == (stk->capacity - 1))
     {
-        struct Stack* temp = stk;
+        element_t* temp = stk->data;
 
-        temp->data = (element_t*) realloc(stk->data, 2 * stk->capacity * sizeof(element_t));
+        temp = (element_t*) realloc(stk->data, 2 * stk->capacity * sizeof(element_t));
 
-        if (temp->data == nullptr)
+        if (temp == nullptr)
         {
-            temp->data = (element_t*) realloc(stk->data, 1.5 * stk->capacity * sizeof(element_t));
+            temp = (element_t*) realloc(stk->data, 1.5 * stk->capacity * sizeof(element_t));
 
-            if (temp->data == nullptr)
+            if (temp == nullptr)
             {
-                temp->data = (element_t*) realloc(stk->data, (stk->capacity + 1) * sizeof(element_t));
+                temp = (element_t*) realloc(stk->data, (stk->capacity + 1) * sizeof(element_t));
                 
-                if (temp->data == nullptr)
+                if (temp == nullptr)
                 {
                   stk->error = OUT_OF_MEMORY; 
                 }
                 
                 else
                 {   
-                    stk->data = temp->data;
+                    stk->data = temp;
                     stk->capacity += 1;
                 }
 
@@ -164,7 +182,7 @@ void Stack_reallocation_memory(struct Stack* stk)
 
             else
             {   
-                stk->data = temp->data;
+                stk->data = temp;
                 stk->capacity *= 1.5;
             }
             
@@ -172,13 +190,13 @@ void Stack_reallocation_memory(struct Stack* stk)
         
         else
         {   
-            stk->data = temp->data;
+            stk->data = temp;
             stk->capacity *= 2;
         }
     }
 }
 
-void Stack_distruct(struct Stack* stk)
+void Stack_destruct(struct Stack* stk)
 {
     NULL_check(stk);
 
@@ -193,8 +211,8 @@ void NULL_check(struct Stack* stk)
     {
         FILE* log = fopen("log.txt", "a");
 
-        fprintf(log, "ERROR, NULL pointer to stack\n");
-        fflush(log);    
+        fprintf(log, "Stack (ERROR NULL PTR) [0x000000]\n");
+        fflush(log);
 
         abort();
     }
@@ -245,11 +263,30 @@ int Stack_ERROR(struct Stack* stk)
             return ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
         }
 
+
         return 0;
     }
 }
 
-void Stack_dump(struct Stack* stk)
+void Stack_dump(FILE* file, struct Stack* stk)
 {
 
+}
+
+void Poison_filling(struct Stack* stk, size_t start, size_t end)
+{
+    for (size_t i = start; i < end; ++i)
+    {
+        stk->data[i] = Poison;
+    }
+}
+
+void Stack_reverse_reallocation_memory(struct Stack* stk)
+{
+    NULL_check(stk);
+
+    if (stk->size < ((stk->capacity) / 2))
+    {
+       ; //stk->data = realloc()
+    }
 }
