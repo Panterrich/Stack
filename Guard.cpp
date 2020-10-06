@@ -249,6 +249,7 @@ void Placing_canary(struct Stack* stk, void* temp)
                     
     canary_t* canary_array_right = (canary_t*) &(stk->data[stk->capacity]);
     *canary_array_right = Canary;
+
 }
 
 unsigned int HASHFAQ6(struct Stack* stk)
