@@ -1,3 +1,6 @@
+#ifndef STACK_H
+#define STACK_H
+
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -21,8 +24,7 @@
 //===================================================
 typedef unsigned long long canary_t;
 
-const canary_t Canary = 0xBADF00DDEADBEAF;
-
+static const canary_t Canary = 0xBADF00DDEADBEAF;
 //===================================================
 
 struct Stack
@@ -50,3 +52,5 @@ void Stack_reallocation_memory(struct Stack* stk);
 void Stack_destruct(struct Stack* stk);
 
 void Stack_reverse_reallocation_memory(struct Stack* stk);
+
+#endif

@@ -4,7 +4,7 @@
 
 int main()
 {
-    struct Stack stk = {Canary, (size_t)(-1), (size_t)(-1), nullptr, 0, 0, 0, Canary}; 
+    struct Stack stk = {}; 
     Stack_construct(&stk, 1);
 
     printf("0x%lx 0x%lx\n\n", *(stk.data - sizeof(canary_t)), *((canary_t*)&(stk.data[stk.capacity])));

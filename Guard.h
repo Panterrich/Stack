@@ -1,22 +1,25 @@
+#ifndef GUARD_H
+#define GUARD_H
+
 #include "Stack.h"
 //===================================================
 
 #ifdef DOUBLE_T
-    const int code_t = 1;
-    const double Poison = NAN;
-    const char*  Poison_text = "NAN";
+    static const int code_t = 1;
+    static const double Poison = NAN;
+    static const char*  Poison_text = "NAN";
 #endif
 
 #ifdef INT_T
-    const int code_t = 2;
-    const int   Poison = 0xBADDED;
-    const char* Poison_text = "0xBADDED";
+    static const int code_t = 2;
+    static const int   Poison = 0xBADDED;
+    static const char* Poison_text = "0xBADDED";
 #endif
 
 #ifdef CHAR_T
-    const int code_t = 3;
-    const char  Poison = '\0';
-    const char* Poison_text = "\\0";
+    static const int code_t = 3;
+    static const char  Poison = '\0';
+    static const char* Poison_text = "\\0";
 #endif
 
 //===================================================
@@ -73,3 +76,5 @@ int Comparator_poison(element_t element);
 void Placing_canary(struct Stack* stk, void* temp);
 
 unsigned int HASHFAQ6(struct Stack* stk);
+
+#endif
