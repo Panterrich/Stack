@@ -93,11 +93,11 @@ int Stack_ERROR(struct Stack* stk)
             return WRONG_CANARY_STRUCT_LEFT;
         }
 
-        // if (stk->canary_struct_right != Canary)
-        // {
-        //     stk->error = WRONG_CANARY_STRUCT_RIGHT;
-        //     return WRONG_CANARY_STRUCT_RIGHT;
-        // }
+        if (stk->canary_struct_right != Canary)
+        {
+            stk->error = WRONG_CANARY_STRUCT_RIGHT;
+            return WRONG_CANARY_STRUCT_RIGHT;
+        }
 
         if (((canary_t*)(stk->data))[-1] != Canary)
         {
@@ -111,11 +111,11 @@ int Stack_ERROR(struct Stack* stk)
             return WRONG_CANARY_ARRAY_RIGHT;
         }
 
-        if (stk->hash != HASHFAQ6(stk))
-        {
-            stk->error = WRONG_HASH;
-            return WRONG_HASH;
-        }
+        // if (stk->hash != HASHFAQ6(stk))
+        // {
+        //     stk->error = WRONG_HASH;
+        //     return WRONG_HASH;
+        // }
 
         return 0;
     }
