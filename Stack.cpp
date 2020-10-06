@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+//==========================================================================================
+
 #define DOUBLE_T
 
 #ifdef DOUBLE_T
@@ -27,6 +29,8 @@
     typedef char element_t;
 #endif
 
+//===================================================
+
 #define ASSERT_OK(a) if (Stack_ERROR(a))                                                                            \
                         {                                                                                           \
                             FILE* log = fopen("log.txt", "a");                                                      \
@@ -35,9 +39,12 @@
                             Stack_dump(log, a);                                                                     \
                             abort();                                                                                \
                         }
+//===================================================
+
 #define case_of_switch(enum_const) case enum_const: return #enum_const;
 
 typedef unsigned long long canary_t;
+
 //===================================================
 
 const canary_t Canary = 0xBADF00DDEADBEAF;
@@ -129,8 +136,6 @@ int main()
     Stack_push(&stk, 50);
     printf("0x%lx 0x%lx\n\n", *(stk.data - sizeof(canary_t)), *((canary_t*)&(stk.data[stk.capacity])));
 
-    stk.data[2] = 50;
-
     printf("Pop: %lg\n", Stack_pop(&stk));
     printf("Pop: %lg\n", Stack_pop(&stk));
     printf("Pop: %lg\n", Stack_pop(&stk));
@@ -179,6 +184,8 @@ void Stack_construct(struct Stack* stk, size_t capacity)
         ++(stk->count_construct);
 
         Poison_filling(stk, stk->size, stk->capacity);
+
+        stk->hash = HASHFAQ6(stk);
     }
 }
 
@@ -192,6 +199,7 @@ void Stack_push(struct Stack* stk, element_t element)
     ASSERT_OK(stk);
 
     stk->data[(stk->size)++] = element;
+    stk->hash = HASHFAQ6(stk);
 
     ASSERT_OK(stk);
 }
@@ -215,6 +223,8 @@ element_t Stack_pop(struct Stack* stk)
 
     temp = stk->data[--(stk->size)];
     stk->data[stk->size] = Poison;
+    stk->hash = HASHFAQ6(stk);
+
     return temp;
 }
 
@@ -248,6 +258,7 @@ void Stack_reallocation_memory(struct Stack* stk)
                     Placing_canary(stk, temp);
 
                     stk->data[stk->capacity-1] = Poison;
+                    stk->hash = HASHFAQ6(stk);
                 }
 
             }
@@ -257,8 +268,9 @@ void Stack_reallocation_memory(struct Stack* stk)
                 stk->capacity *= 1.5;
 
                 Placing_canary(stk, temp);
-
                 Poison_filling(stk, stk->size + 1, stk->capacity);
+
+                stk->hash = HASHFAQ6(stk);
             }
             
         }
@@ -268,8 +280,9 @@ void Stack_reallocation_memory(struct Stack* stk)
             stk->capacity *= 2;
 
             Placing_canary(stk, temp);
-
             Poison_filling(stk, stk->size + 1, stk->capacity);
+
+            stk->hash = HASHFAQ6(stk);
         }
     }
 }
@@ -283,6 +296,7 @@ void Stack_destruct(struct Stack* stk)
     stk->data = nullptr;
     stk->capacity = -1;
     stk->size = -1;
+    stk->hash = HASHFAQ6(stk);
 }
 
 void NULL_check(struct Stack* stk)
@@ -385,6 +399,12 @@ int Stack_ERROR(struct Stack* stk)
             return WRONG_CANARY_ARRAY_RIGHT;
         }
 
+        if (stk->hash != HASHFAQ6(stk))
+        {
+            stk->error = WRONG_HASH;
+            return WRONG_HASH;
+        }
+
         return 0;
     }
 }
@@ -429,6 +449,8 @@ void Stack_reverse_reallocation_memory(struct Stack* stk)
         void* temp = realloc(&((canary_t*)stk->data)[-1], (stk->capacity + 1) * sizeof(element_t) + 2 * sizeof(canary_t));
 
         Placing_canary(stk, temp);
+
+        stk->hash = HASHFAQ6(stk);
     }
 
     ASSERT_OK(stk)
@@ -581,4 +603,6 @@ int Compare_hash(struct Stack* stk)
         stk->error = WRONG_HASH;
         return WRONG_HASH;
     }
+
+    return 0;
 }
