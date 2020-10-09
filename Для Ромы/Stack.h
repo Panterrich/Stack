@@ -34,8 +34,8 @@ struct Stack
     size_t capacity;
     element_t* data;
     int error;
-    size_t count_construct;
-    unsigned int hash;
+    unsigned int struct_hash;
+    unsigned int stack_hash;
     canary_t canary_struct_right;
 };
 

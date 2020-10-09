@@ -22,7 +22,13 @@ int Stack_ERROR(struct Stack* stk)
     }
 
     else 
-    {
+    {   
+        if (Stack_is_destructed(stk))
+        {
+            stk->error = STACK_IS_DESTRUCTED;
+            return STACK_IS_DESTRUCTED;
+        }
+
         if (stk->size >= stk->capacity)
         {
         stk->error = SIZE_OUT_OF_CAPACITY;
@@ -59,7 +65,7 @@ int Stack_ERROR(struct Stack* stk)
             return ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
         }
 
-        if ((stk->size < (stk->capacity - 1)) && (stk->size > 0))
+        if ((stk->size <= (stk->capacity - 1)) && (stk->size > 0))
         {
             if (!(Comparator_poison(stk->data[stk->size]) && !Comparator_poison(stk->data[stk->size - 1])))
             {
@@ -67,16 +73,6 @@ int Stack_ERROR(struct Stack* stk)
                 return WRONG_SIZE;
             }
         }
-
-
-        // if ((stk->size <= (stk->capacity - 1)) && (stk->size > 0))
-        // {
-        //     if (!(Comparator_poison(stk->data[stk->size]) && !Comparator_poison(stk->data[stk->size - 1])))
-        //     {
-        //         stk->error = WRONG_SIZE;
-        //         return WRONG_SIZE;
-        //     }
-        // }
 
         else if (stk->size == 0)
             {
@@ -111,11 +107,17 @@ int Stack_ERROR(struct Stack* stk)
             return WRONG_CANARY_ARRAY_RIGHT;
         }
 
-        // if (stk->hash != HASHFAQ6(stk))
-        // {
-        //     stk->error = WRONG_HASH;
-        //     return WRONG_HASH;
-        // }
+        if (stk->struct_hash != Struct_stack_HASHFAQ6(stk))
+        {   
+        stk->error = WRONG_STRUCT_HASH;
+        return WRONG_STRUCT_HASH;
+        }
+
+        if (stk->stack_hash != Stack_HASHFAQ6(stk))
+        {   
+        stk->error = WRONG_STACK_HASH;
+        return WRONG_STACK_HASH;
+        }
 
         return 0;
     }
@@ -134,8 +136,11 @@ void Stack_dump(FILE* file, struct Stack* stk)
     fprintf(file, "\tdata[0x%x]\n",       stk->data);
     fprintf(file, "\t{\n");
 
-    Print_array(file, stk);
-
+    if (stk->data != nullptr)
+    {
+        Print_array(file, stk);
+    }
+    
     fprintf(file, "\t}\n");
     fprintf(file, "}\n\n\n");
 
@@ -168,7 +173,10 @@ const char* Text_ERROR(struct Stack* stk)
     case_of_switch(WRONG_CANARY_STRUCT_RIGHT)
     case_of_switch(WRONG_CANARY_ARRAY_LEFT)
     case_of_switch(WRONG_CANARY_ARRAY_RIGHT)
-    case_of_switch(WRONG_HASH)
+    case_of_switch(WRONG_STRUCT_HASH)
+    case_of_switch(WRONG_STACK_HASH)
+    case_of_switch(INVALID_PUSH)
+    case_of_switch(STACK_IS_DESTRUCTED)
     default: return "Unknown ERROR";
     }
 }
@@ -262,7 +270,7 @@ void Placing_canary(struct Stack* stk, void* temp)
 
 }
 
-unsigned int HASHFAQ6(struct Stack* stk)
+unsigned int Stack_HASHFAQ6(struct Stack* stk)
 {
     unsigned int hash = 0;
 
@@ -273,9 +281,18 @@ unsigned int HASHFAQ6(struct Stack* stk)
         hash ^= (hash >> 6);
     }
 
-    for (int i = 0; i < (3 * sizeof(size_t) + sizeof(int) + sizeof(element_t*)); ++i)
+    size_t limit = 2 * sizeof(size_t) + sizeof(int) + sizeof(element_t*) + sizeof(canary_t);
+    
+    for (int i = 0; i < limit; ++i)
     {
         hash += (unsigned char)(*((char*)stk + i));
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+
+    for (int i = 0; i < sizeof(canary_t); ++i)
+    {
+        hash += (unsigned char)(*((char*)stk + limit + 2 * sizeof(unsigned int) + i));
         hash += (hash << 10);
         hash ^= (hash >> 6);
     }
@@ -285,4 +302,45 @@ unsigned int HASHFAQ6(struct Stack* stk)
     hash += (hash << 15);
 
     return hash;
+}
+
+unsigned int Struct_stack_HASHFAQ6(struct Stack* stk)
+{
+    unsigned int hash = 0;
+    size_t limit = 2 * sizeof(size_t) + sizeof(int) + sizeof(element_t*) + sizeof(canary_t);
+    
+    for (int i = 0; i < limit; ++i)
+    {
+        hash += (unsigned char)(*((char*)stk + i));
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+
+    for (int i = 0; i < sizeof(canary_t); ++i)
+    {
+        hash += (unsigned char)(*((char*)stk + limit + 2 * sizeof(unsigned int) + i));
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+
+    return hash;
+}
+
+int Stack_is_destructed(struct Stack* stk)
+{
+    if  ((stk->data  == nullptr)           &&
+         (stk->size  == -1)                &&
+         (stk->error ==  0)                &&
+         (stk->capacity    == -1)          &&
+         (stk->struct_hash ==  0)          &&
+         (stk->stack_hash  ==  0)          &&
+         (stk->canary_struct_left  == -1)  &&
+         (stk->canary_struct_right == -1))
+        return 1;
+    else 
+        return 0;
 }
