@@ -84,6 +84,6 @@ unsigned int Stack_HASHFAQ6(struct Stack* stk);
 
 int Stack_is_destructed(struct Stack* stk);
 
-#include "Guard.cpp"
+#include "Guard.h"
 
 #endif

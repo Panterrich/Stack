@@ -1,3 +1,4 @@
+#include "Guard.h"
 //===================================================
 
 void NULL_check(struct Stack* stk)
@@ -135,7 +136,7 @@ void Stack_dump(FILE* file, struct Stack* stk)
     fprintf(file, "\tdata[0x%x]\n",       stk->data);
     fprintf(file, "\t{\n");
 
-    if (stk->data != nullptr)
+    if ((stk->data != nullptr) && (stk->error != NEGATIVE_CAPACITY) && (stk->error != NULL_ARRAY)) 
     {
         Print_array(file, stk);
     }

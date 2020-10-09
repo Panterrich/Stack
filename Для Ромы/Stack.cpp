@@ -1,6 +1,7 @@
+#include "Guard.h"
 //===================================================
 
-void Stack_construct(struct Stack* stk, size_t capacity)
+void Stack_construct(struct Stack* stk, long capacity)
 {
     NULL_check(stk);
 
@@ -10,8 +11,8 @@ void Stack_construct(struct Stack* stk, size_t capacity)
         {   
             if (stk->struct_hash != Struct_stack_HASHFAQ6(stk))
             {
-                // stk->error = WRONG_STRUCT_HASH;
-                // ASSERT_OK(stk);
+                stk->error = WRONG_STRUCT_HASH;
+                ASSERT_OK(stk);
             }
 
             else
@@ -23,7 +24,7 @@ void Stack_construct(struct Stack* stk, size_t capacity)
     }
 
     if (capacity < 0)
-    {
+    {   
         stk->error = NEGATIVE_CAPACITY;
         ASSERT_OK(stk);
     }
@@ -74,12 +75,12 @@ void Stack_push(struct Stack* stk, element_t element)
 
     if (Comparator_poison(element))
     {
-        // stk->error = INVALID_PUSH;
-        // ASSERT_OK(stk)
+        stk->error = INVALID_PUSH;
+        ASSERT_OK(stk)
     }
 
     stk->data[(stk->size)++] = element;
-
+    
     stk->struct_hash = Struct_stack_HASHFAQ6(stk);
     stk->stack_hash  = Stack_HASHFAQ6(stk);
 
