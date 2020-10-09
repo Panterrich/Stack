@@ -27,7 +27,7 @@
 #define ASSERT_OK(a) if (Stack_ERROR(a))                                                                            \
                         {                                                                                           \
                             FILE* log = fopen("log.txt", "a");                                                      \
-                            assert(log != 0);                                                                       \
+                            assert(log != nullptr);                                                                       \
                             fprintf(log, "ERROR: file %s line %d function %s\n", __FILE__, __LINE__, __FUNCTION__); \
                             Stack_dump(log, a);                                                                     \
                             abort();                                                                                \
@@ -54,7 +54,10 @@ enum ERROR
     WRONG_CANARY_STRUCT_RIGHT,
     WRONG_CANARY_ARRAY_LEFT,
     WRONG_CANARY_ARRAY_RIGHT,
-    WRONG_HASH
+    WRONG_STRUCT_HASH,
+    WRONG_STACK_HASH,
+    INVALID_PUSH,
+    STACK_IS_DESTUCTED
 };
 
 //===================================================
@@ -75,6 +78,10 @@ int Comparator_poison(element_t element);
 
 void Placing_canary(struct Stack* stk, void* temp);
 
-unsigned int HASHFAQ6(struct Stack* stk);
+unsigned int Struct_stack_HASHFAQ6(struct Stack* stk);
+
+unsigned int Stack_HASHFAQ6(struct Stack* stk);
+
+int Stack_is_destructed(struct Stack* stk);
 
 #endif
