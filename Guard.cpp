@@ -25,8 +25,8 @@ int Stack_ERROR(struct Stack* stk)
     {   
         if (Stack_is_destructed(stk))
         {
-            stk->error = STACK_IS_DESTUCTED;
-            return STACK_IS_DESTUCTED;
+            stk->error = STACK_IS_DESTRUCTED;
+            return STACK_IS_DESTRUCTED;
         }
 
         if (stk->size >= stk->capacity)
@@ -176,7 +176,7 @@ const char* Text_ERROR(struct Stack* stk)
     case_of_switch(WRONG_STRUCT_HASH)
     case_of_switch(WRONG_STACK_HASH)
     case_of_switch(INVALID_PUSH)
-    case_of_switch(STACK_IS_DESTUCTED)
+    case_of_switch(STACK_IS_DESTRUCTED)
     default: return "Unknown ERROR";
     }
 }

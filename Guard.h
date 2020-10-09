@@ -57,7 +57,7 @@ enum ERROR
     WRONG_STRUCT_HASH,
     WRONG_STACK_HASH,
     INVALID_PUSH,
-    STACK_IS_DESTUCTED
+    STACK_IS_DESTRUCTED
 };
 
 //===================================================
