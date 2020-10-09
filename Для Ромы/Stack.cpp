@@ -1,4 +1,3 @@
-#include "Guard.h"
 //===================================================
 
 void Stack_construct(struct Stack* stk, size_t capacity)
@@ -75,8 +74,8 @@ void Stack_push(struct Stack* stk, element_t element)
 
     if (Comparator_poison(element))
     {
-        stk->error = INVALID_PUSH;
-        ASSERT_OK(stk)
+        // stk->error = INVALID_PUSH;
+        // ASSERT_OK(stk)
     }
 
     stk->data[(stk->size)++] = element;
@@ -98,11 +97,11 @@ element_t Stack_pop(struct Stack* stk)
 
     element_t temp = Poison;
 
-    // if (stk->size == 0)
-    // {
-    //     stk->error = NULL_POP;
-    //     ASSERT_OK(stk);
-    // }
+    if (stk->size == 0)
+    {
+        stk->error = NULL_POP;
+        ASSERT_OK(stk);
+    }
 
     temp = stk->data[--(stk->size)];
     stk->data[stk->size] = Poison;
