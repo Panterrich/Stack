@@ -53,6 +53,6 @@ void Stack_destruct(struct Stack* stk);
 
 void Stack_reverse_reallocation_memory(struct Stack* stk);
 
-#include "Stack.cpp"
+#include <Stack.cpp>
 
 #endif

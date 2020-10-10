@@ -27,7 +27,7 @@
 #define ASSERT_OK(a) if (Stack_ERROR(a))                                                                            \
                         {                                                                                           \
                             FILE* log = fopen("log.txt", "a");                                                      \
-                            assert(log != nullptr);                                                                       \
+                            assert(log != nullptr);                                                                 \
                             fprintf(log, "ERROR: file %s line %d function %s\n", __FILE__, __LINE__, __FUNCTION__); \
                             Stack_dump(log, a);                                                                     \
                             abort();                                                                                \
@@ -84,6 +84,6 @@ unsigned int Stack_HASHFAQ6(struct Stack* stk);
 
 int Stack_is_destructed(struct Stack* stk);
 
-#include "Guard.h"
+#include "Guard.cpp"
 
 #endif
