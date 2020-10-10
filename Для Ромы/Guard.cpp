@@ -1,4 +1,3 @@
-#include "Guard.h"
 //===================================================
 
 void NULL_check(struct Stack* stk)

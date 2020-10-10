@@ -1,4 +1,3 @@
-#include "Guard.h"
 //===================================================
 
 void Stack_construct(struct Stack* stk, long capacity)
