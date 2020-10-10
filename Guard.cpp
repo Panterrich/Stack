@@ -136,7 +136,7 @@ void Stack_dump(FILE* file, struct Stack* stk)
     fprintf(file, "\tdata[0x%x]\n",       stk->data);
     fprintf(file, "\t{\n");
 
-    if (stk->data != nullptr)
+    if ((stk->data != nullptr) && (stk->error != NEGATIVE_CAPACITY) && (stk->error != NULL_ARRAY)) 
     {
         Print_array(file, stk);
     }
@@ -267,7 +267,6 @@ void Placing_canary(struct Stack* stk, void* temp)
                     
     canary_t* canary_array_right = (canary_t*) &(stk->data[stk->capacity]);
     *canary_array_right = Canary;
-
 }
 
 unsigned int Stack_HASHFAQ6(struct Stack* stk)

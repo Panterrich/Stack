@@ -1,7 +1,7 @@
 #include "Guard.h"
 //===================================================
 
-void Stack_construct(struct Stack* stk, size_t capacity)
+void Stack_construct(struct Stack* stk, long capacity)
 {
     NULL_check(stk);
 
@@ -24,7 +24,7 @@ void Stack_construct(struct Stack* stk, size_t capacity)
     }
 
     if (capacity < 0)
-    {
+    {   
         stk->error = NEGATIVE_CAPACITY;
         ASSERT_OK(stk);
     }

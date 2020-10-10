@@ -41,7 +41,7 @@ struct Stack
 
 //===================================================
 
-void Stack_construct(struct Stack* stk, size_t capacity);
+void Stack_construct(struct Stack* stk, long capacity);
 
 void Stack_push(struct Stack* stk, element_t element);
 
