@@ -59,7 +59,7 @@ int Stack_ERROR(struct Stack* stk)
             return NULL_POINTER_TO_ARRAY;
         }
 
-        if (stk->data == (element_t*)stk)
+        if (stk->data == (element_t*) stk)
         {
             stk->error = ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
             return ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
@@ -75,13 +75,13 @@ int Stack_ERROR(struct Stack* stk)
         }
 
         else if (stk->size == 0)
+        {
+            if (!Comparator_poison(stk->data[stk->size]))
             {
-                if (!Comparator_poison(stk->data[stk->size]))
-                {
                 stk->error = WRONG_SIZE;
                 return WRONG_SIZE;
-                }
             }
+        }
 
         if (stk->canary_struct_left != Canary)
         {
@@ -109,14 +109,14 @@ int Stack_ERROR(struct Stack* stk)
 
         if (stk->struct_hash != Struct_stack_HASHFAQ6(stk))
         {   
-        stk->error = WRONG_STRUCT_HASH;
-        return WRONG_STRUCT_HASH;
+            stk->error = WRONG_STRUCT_HASH;
+            return WRONG_STRUCT_HASH;
         }
 
         if (stk->stack_hash != Stack_HASHFAQ6(stk))
         {   
-        stk->error = WRONG_STACK_HASH;
-        return WRONG_STACK_HASH;
+            stk->error = WRONG_STACK_HASH;
+            return WRONG_STACK_HASH;
         }
 
         return 0;
@@ -133,7 +133,7 @@ void Stack_dump(FILE* file, struct Stack* stk)
     fprintf(file, "{\n");
     fprintf(file, "\tsize = %u\n",      stk->size);
     fprintf(file, "\tcapacity = %u\n",  stk->capacity);
-    fprintf(file, "\tdata[0x%x]\n",       stk->data);
+    fprintf(file, "\tdata[0x%x]\n",     stk->data);
     fprintf(file, "\t{\n");
 
     if ((stk->data != nullptr) && (stk->error != NEGATIVE_CAPACITY) && (stk->error != NULL_ARRAY)) 
@@ -249,9 +249,9 @@ int Comparator_poison(element_t element)
 {
     switch(code_t)
     {
-    case 1: return (isnan(element));
-    case 2: return (element == 0xBADDED);
-    case 3: return (element == '\0');
+        case 1: return (isnan(element));
+        case 2: return (element == 0xBADDED);
+        case 3: return (element == '\0');
     }
 }
 
