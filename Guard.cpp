@@ -1,4 +1,3 @@
-#include "Guard.h"
 //===================================================
 
 void NULL_check(struct Stack* stk)
@@ -65,23 +64,23 @@ int Stack_ERROR(struct Stack* stk)
             return ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
         }
 
-        if ((stk->size <= (stk->capacity - 1)) && (stk->size > 0))
-        {
-            if (!(Comparator_poison(stk->data[stk->size]) && !Comparator_poison(stk->data[stk->size - 1])))
-            {
-                stk->error = WRONG_SIZE;
-                return WRONG_SIZE;
-            }
-        }
+        // if ((stk->size <= (stk->capacity - 1)) && (stk->size > 0))
+        // {
+        //     if (!(Comparator_poison(stk->data[stk->size]) && !Comparator_poison(stk->data[stk->size - 1])))
+        //     {
+        //         stk->error = WRONG_SIZE;
+        //         return WRONG_SIZE;
+        //     }
+        // }
 
-        else if (stk->size == 0)
-        {
-            if (!Comparator_poison(stk->data[stk->size]))
-            {
-                stk->error = WRONG_SIZE;
-                return WRONG_SIZE;
-            }
-        }
+        // else if (stk->size == 0)
+        // {
+        //     if (!Comparator_poison(stk->data[stk->size]))
+        //     {
+        //         stk->error = WRONG_SIZE;
+        //         return WRONG_SIZE;
+        //     }
+        // }
 
         if (stk->canary_struct_left != Canary)
         {

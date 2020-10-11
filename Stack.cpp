@@ -1,4 +1,3 @@
-#include "Guard.h"
 //===================================================
 
 void Stack_construct(struct Stack* stk, long capacity)
@@ -74,11 +73,11 @@ void Stack_push(struct Stack* stk, element_t element)
 
     ASSERT_OK(stk);
 
-    if (Comparator_poison(element))
-    {
-        stk->error = INVALID_PUSH;
-        ASSERT_OK(stk)
-    }
+    // if (Comparator_poison(element))
+    // {
+    //     stk->error = INVALID_PUSH;
+    //     ASSERT_OK(stk)
+    // }
 
     stk->data[(stk->size)++] = element;
     
