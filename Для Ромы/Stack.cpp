@@ -28,6 +28,7 @@ void Stack_construct(struct Stack* stk, long capacity)
         ASSERT_OK(stk);
     }
 
+    //TODO: it's not an error
     else if (capacity == 0)
     {
         stk->error = NULL_ARRAY;
@@ -72,11 +73,11 @@ void Stack_push(struct Stack* stk, element_t element)
 
     ASSERT_OK(stk);
 
-    // if (Comparator_poison(element))
-    // {
-    //     stk->error = INVALID_PUSH;
-    //     ASSERT_OK(stk)
-    // }
+    if (Comparator_poison(element))
+    {
+        stk->error = INVALID_PUSH;
+        ASSERT_OK(stk)
+    }
 
     stk->data[(stk->size)++] = element;
     
@@ -120,7 +121,7 @@ void Stack_reallocation_memory(struct Stack* stk)
     {
         void* temp = (void*) stk->data;
 
-        temp = realloc(&((canary_t*)stk->data)[-1], 2 * stk->capacity * sizeof(element_t) + 2 * sizeof(canary_t));
+        temp = realloc(&((canary_t*) stk->data)[-1], 2 * stk->capacity * sizeof(element_t) + 2 * sizeof(canary_t));
 
         if (temp == nullptr)
         {
@@ -141,7 +142,7 @@ void Stack_reallocation_memory(struct Stack* stk)
 
                     Placing_canary(stk, temp);
 
-                    stk->data[stk->capacity-1] = Poison;
+                    stk->data[stk->capacity - 1] = Poison;
 
                     stk->struct_hash = Struct_stack_HASHFAQ6(stk);
                     stk->stack_hash  = Stack_HASHFAQ6(stk);
@@ -198,7 +199,7 @@ void Stack_destruct(struct Stack* stk)
 {
     NULL_check(stk);
 
-    if (stk->data != nullptr) (&(((canary_t*)stk->data)[-1]));
+    if (stk->data != nullptr) free(&(((canary_t*)stk->data)[-1]));
 
     stk->data  = nullptr;
     stk->size  = -1;
