@@ -42,7 +42,6 @@ enum ERROR
 {
     SIZE_OUT_OF_CAPACITY = 1,
     OUT_OF_MEMORY,
-    NULL_ARRAY,
     NEGATIVE_SIZE,
     NEGATIVE_CAPACITY,
     NULL_POINTER_TO_ARRAY,
@@ -83,7 +82,5 @@ unsigned int Struct_stack_HASHFAQ6(struct Stack* stk);
 unsigned int Stack_HASHFAQ6(struct Stack* stk);
 
 int Stack_is_destructed(struct Stack* stk);
-
-#include "Guard.cpp"
 
 #endif

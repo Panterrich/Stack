@@ -1,3 +1,4 @@
+#include "Guard.h"
 //===================================================
 
 void NULL_check(struct Stack* stk)
@@ -28,16 +29,10 @@ int Stack_ERROR(struct Stack* stk)
             return STACK_IS_DESTRUCTED;
         }
 
-        if (stk->size >= stk->capacity)
+        if ((stk->size >= stk->capacity) && (stk->capacity != 0))
         {
         stk->error = SIZE_OUT_OF_CAPACITY;
         return SIZE_OUT_OF_CAPACITY;
-        }
-        
-        if (stk->capacity == 0)
-        {
-            stk->error == NULL_ARRAY;
-            return NULL_ARRAY;
         }
 
         if (stk->size < 0)
@@ -52,36 +47,6 @@ int Stack_ERROR(struct Stack* stk)
             return NEGATIVE_CAPACITY;
         }
 
-        if (stk->data == nullptr)
-        {
-            stk->error = NULL_POINTER_TO_ARRAY;
-            return NULL_POINTER_TO_ARRAY;
-        }
-
-        if (stk->data == (element_t*) stk)
-        {
-            stk->error = ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
-            return ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
-        }
-
-        // if ((stk->size <= (stk->capacity - 1)) && (stk->size > 0))
-        // {
-        //     if (!(Comparator_poison(stk->data[stk->size]) && !Comparator_poison(stk->data[stk->size - 1])))
-        //     {
-        //         stk->error = WRONG_SIZE;
-        //         return WRONG_SIZE;
-        //     }
-        // }
-
-        // else if (stk->size == 0)
-        // {
-        //     if (!Comparator_poison(stk->data[stk->size]))
-        //     {
-        //         stk->error = WRONG_SIZE;
-        //         return WRONG_SIZE;
-        //     }
-        // }
-
         if (stk->canary_struct_left != Canary)
         {
             stk->error = WRONG_CANARY_STRUCT_LEFT;
@@ -94,28 +59,64 @@ int Stack_ERROR(struct Stack* stk)
             return WRONG_CANARY_STRUCT_RIGHT;
         }
 
-        if (((canary_t*)(stk->data))[-1] != Canary)
-        {
-            stk->error = WRONG_CANARY_ARRAY_LEFT;
-            return WRONG_CANARY_ARRAY_LEFT;
-        }
-
-        if (*((canary_t*)&((stk->data)[stk->capacity])) != Canary)
-        {
-            stk->error = WRONG_CANARY_ARRAY_RIGHT;
-            return WRONG_CANARY_ARRAY_RIGHT;
-        }
-
         if (stk->struct_hash != Struct_stack_HASHFAQ6(stk))
         {   
             stk->error = WRONG_STRUCT_HASH;
             return WRONG_STRUCT_HASH;
         }
 
-        if (stk->stack_hash != Stack_HASHFAQ6(stk))
-        {   
-            stk->error = WRONG_STACK_HASH;
-            return WRONG_STACK_HASH;
+        
+        if ((stk->capacity != 0) && (stk->data == nullptr))
+        {
+            stk->error = NULL_POINTER_TO_ARRAY;
+            return NULL_POINTER_TO_ARRAY;
+        }
+
+        if ((stk->capacity != 0) && (stk->data != nullptr))
+        {
+
+            if (stk->data == (element_t*) stk)
+            {
+                stk->error = ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
+                return ARRAY_AND_STRUCTURE_POINTERS_MATCHED;
+            }
+
+            if ((stk->size <= (stk->capacity - 1)) && (stk->size > 0))
+            {
+                if (!(Comparator_poison(stk->data[stk->size]) && !Comparator_poison(stk->data[stk->size - 1])))
+                {
+                    stk->error = WRONG_SIZE;
+                    return WRONG_SIZE;
+                }
+            }
+
+            else if (stk->size == 0)
+            {
+                if (!Comparator_poison(stk->data[stk->size]))
+                {
+                    stk->error = WRONG_SIZE;
+                    return WRONG_SIZE;
+                }
+            }
+
+            if (((canary_t*)(stk->data))[-1] != Canary)
+            {
+                stk->error = WRONG_CANARY_ARRAY_LEFT;
+                return WRONG_CANARY_ARRAY_LEFT;
+            }
+
+            if (*((canary_t*)&((stk->data)[stk->capacity])) != Canary)
+            {
+                stk->error = WRONG_CANARY_ARRAY_RIGHT;
+                return WRONG_CANARY_ARRAY_RIGHT;
+            }
+
+            if (stk->stack_hash != Stack_HASHFAQ6(stk))
+            {   
+                stk->error = WRONG_STACK_HASH;
+                return WRONG_STACK_HASH;
+            }
+
         }
 
         return 0;
@@ -135,7 +136,7 @@ void Stack_dump(FILE* file, struct Stack* stk)
     fprintf(file, "\tdata[0x%x]\n",     stk->data);
     fprintf(file, "\t{\n");
 
-    if ((stk->data != nullptr) && (stk->error != NEGATIVE_CAPACITY) && (stk->error != NULL_ARRAY)) 
+    if ((stk->data != nullptr) && (stk->error != NEGATIVE_CAPACITY)) 
     {
         Print_array(file, stk);
     }
@@ -158,9 +159,9 @@ const char* Text_ERROR(struct Stack* stk)
 {
     switch (stk->error)
     {
+    case 0: return "OK";
     case_of_switch(SIZE_OUT_OF_CAPACITY)
     case_of_switch(OUT_OF_MEMORY)
-    case_of_switch(NULL_ARRAY)
     case_of_switch(NEGATIVE_SIZE)
     case_of_switch(NEGATIVE_CAPACITY)
     case_of_switch(NULL_POINTER_TO_ARRAY)
