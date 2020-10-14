@@ -21,21 +21,28 @@
     typedef char element_t;
 #endif
 
+#define STACK_CONSTUCT(stk, capacity) (stk)->name = #stk;               \
+                                      Stack_construct(stk, capacity)
+
 //===================================================
 typedef unsigned long long canary_t;
 
-static const canary_t Canary = 0xBADF00DDEADBEAF;
+static const canary_t Canary = 0xBADDF00DDEADBEAF;
 //===================================================
 
 struct Stack
 {
     canary_t canary_struct_left;
+
+    const char* name;
     size_t size;
     size_t capacity;
     element_t* data;
+
     int error;
     unsigned int struct_hash;
     unsigned int stack_hash;
+
     canary_t canary_struct_right;
 };
 

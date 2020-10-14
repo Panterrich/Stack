@@ -129,7 +129,7 @@ void Stack_dump(FILE* file, struct Stack* stk)
 
     const char* code = Text_ERROR(stk);
 
-    fprintf(file, "Stack (ERROR #%d: %s [0x%x] \"stk\" \n", stk->error, code, stk);
+    fprintf(file, "Stack (ERROR #%d: %s [0x%x] \"%s\" \n", stk->error, code, stk, (stk->name + 1));
     fprintf(file, "{\n");
     fprintf(file, "\tsize = %u\n",      stk->size);
     fprintf(file, "\tcapacity = %u\n",  stk->capacity);
@@ -280,7 +280,7 @@ unsigned int Stack_HASHFAQ6(struct Stack* stk)
         hash ^= (hash >> 6);
     }
 
-    size_t limit = 2 * sizeof(size_t) + sizeof(int) + sizeof(element_t*) + sizeof(canary_t);
+    size_t limit = 2 * sizeof(size_t) + sizeof(int) + sizeof(element_t*) + sizeof(canary_t) + sizeof(char*);
     
     for (int i = 0; i < limit; ++i)
     {
@@ -306,7 +306,7 @@ unsigned int Stack_HASHFAQ6(struct Stack* stk)
 unsigned int Struct_stack_HASHFAQ6(struct Stack* stk)
 {
     unsigned int hash = 0;
-    size_t limit = 2 * sizeof(size_t) + sizeof(int) + sizeof(element_t*) + sizeof(canary_t);
+    size_t limit = 2 * sizeof(size_t) + sizeof(int) + sizeof(element_t*) + sizeof(canary_t) + sizeof(char*);
     
     for (int i = 0; i < limit; ++i)
     {
