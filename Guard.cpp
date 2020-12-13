@@ -1,7 +1,8 @@
 #include "Guard.h"
+#include "../Differentiator.h"
 //===================================================
 
-void NULL_check(struct Stack* stk)
+void Stack_null_check(struct Stack* stk)
 {
     if (stk == nullptr)
     {
@@ -35,13 +36,13 @@ int Stack_ERROR(struct Stack* stk)
         return SIZE_OUT_OF_CAPACITY;
         }
 
-        if (stk->size < 0)
+        if ((long long)stk->size < 0)
         {
             stk->error = NEGATIVE_SIZE;
             return NEGATIVE_SIZE;
         }
 
-        if (stk->capacity < 0)
+        if ((long long)stk->capacity < 0)
         {
             stk->error = NEGATIVE_CAPACITY;
             return NEGATIVE_CAPACITY;
@@ -64,7 +65,6 @@ int Stack_ERROR(struct Stack* stk)
             stk->error = WRONG_STRUCT_HASH;
             return WRONG_STRUCT_HASH;
         }
-
         
         if ((stk->capacity != 0) && (stk->data == nullptr))
         {
@@ -116,7 +116,6 @@ int Stack_ERROR(struct Stack* stk)
                 stk->error = WRONG_STACK_HASH;
                 return WRONG_STACK_HASH;
             }
-
         }
 
         return 0;
@@ -125,15 +124,19 @@ int Stack_ERROR(struct Stack* stk)
 
 void Stack_dump(FILE* file, struct Stack* stk)
 {
-    NULL_check(stk);
+    Stack_null_check(stk);
 
     const char* code = Text_ERROR(stk);
 
-    fprintf(file, "Stack (ERROR #%d: %s [0x%x] \"%s\" \n", stk->error, code, stk, (stk->name + 1));
+    fprintf(file, "Stack (ERROR #%d: %s [%p] \"%s\" \n", stk->error, code, stk, stk->name);
     fprintf(file, "{\n");
-    fprintf(file, "\tsize = %u\n",      stk->size);
-    fprintf(file, "\tcapacity = %u\n",  stk->capacity);
-    fprintf(file, "\tdata[0x%x]\n",     stk->data);
+    fprintf(file, "\tleft struct canary = %lx\n",  stk->canary_struct_left);
+    fprintf(file, "\tsize = %lu\n",                stk->size);
+    fprintf(file, "\tcapacity = %lu\n",            stk->capacity);
+    fprintf(file, "\tstruct hash = %lu\n",         stk->struct_hash);
+    fprintf(file, "\tstack hash = %lu\n",          stk->stack_hash);
+    fprintf(file, "\tright struct canary = %lx\n", stk->canary_struct_right);
+    fprintf(file, "\tdata[%p]\n",                  stk->data);
     fprintf(file, "\t{\n");
 
     if ((stk->data != nullptr) && (stk->error != NEGATIVE_CAPACITY)) 
@@ -141,8 +144,8 @@ void Stack_dump(FILE* file, struct Stack* stk)
         Print_array(file, stk);
     }
     
-    fprintf(file, "\t}\n");
-    fprintf(file, "}\n\n\n");
+    fprintf(file, "\t}\n"
+                  "}\n\n\n");
 
     fflush(file);
 }
@@ -159,51 +162,51 @@ const char* Text_ERROR(struct Stack* stk)
 {
     switch (stk->error)
     {
-    case 0: return "OK";
-    case_of_switch(SIZE_OUT_OF_CAPACITY)
-    case_of_switch(OUT_OF_MEMORY)
-    case_of_switch(NEGATIVE_SIZE)
-    case_of_switch(NEGATIVE_CAPACITY)
-    case_of_switch(NULL_POINTER_TO_ARRAY)
-    case_of_switch(ARRAY_AND_STRUCTURE_POINTERS_MATCHED)
-    case_of_switch(REPEATED_CONSTRUCTION)
-    case_of_switch(WRONG_SIZE)
-    case_of_switch(NULL_POP)
-    case_of_switch(WRONG_CANARY_STRUCT_LEFT)
-    case_of_switch(WRONG_CANARY_STRUCT_RIGHT)
-    case_of_switch(WRONG_CANARY_ARRAY_LEFT)
-    case_of_switch(WRONG_CANARY_ARRAY_RIGHT)
-    case_of_switch(WRONG_STRUCT_HASH)
-    case_of_switch(WRONG_STACK_HASH)
-    case_of_switch(INVALID_PUSH)
-    case_of_switch(STACK_IS_DESTRUCTED)
-    default: return "Unknown ERROR";
+        case 0: return "OK";
+        case_of_switch(SIZE_OUT_OF_CAPACITY)
+        case_of_switch(OUT_OF_MEMORY)
+        case_of_switch(NEGATIVE_SIZE)
+        case_of_switch(NEGATIVE_CAPACITY)
+        case_of_switch(NULL_POINTER_TO_ARRAY)
+        case_of_switch(ARRAY_AND_STRUCTURE_POINTERS_MATCHED)
+        case_of_switch(REPEATED_CONSTRUCTION)
+        case_of_switch(WRONG_SIZE)
+        case_of_switch(NULL_POP)
+        case_of_switch(WRONG_CANARY_STRUCT_LEFT)
+        case_of_switch(WRONG_CANARY_STRUCT_RIGHT)
+        case_of_switch(WRONG_CANARY_ARRAY_LEFT)
+        case_of_switch(WRONG_CANARY_ARRAY_RIGHT)
+        case_of_switch(WRONG_STRUCT_HASH)
+        case_of_switch(WRONG_STACK_HASH)
+        case_of_switch(INVALID_PUSH)
+        case_of_switch(STACK_IS_DESTRUCTED)
+        default: return "Unknown ERROR";
     }
 }
 
 void Print_array(FILE*file, struct Stack* stk)
 {
-    switch (code_t)
-    {
-    case 1:
-        for (int i = 0; i <= stk->size; ++i)
-        {
-            if (isnan(stk->data[i])) 
-                fprintf(file, "\t\t*[%d] = NAN (Poison!)\n", i);
-            else
-                fprintf(file, "\t\t*[%d] = %lg\n", i, stk->data[i]);
-        }
+    #ifdef DOUBLE_T
+            for (int i = 0; i <= stk->size; ++i)
+            {
+                if (isnan(stk->data[i])) 
+                    fprintf(file, "\t\t*[%d] = NAN (Poison!)\n", i);
+                else
+                    fprintf(file, "\t\t*[%d] = %lg\n", i, stk->data[i]);
+            }
 
-        for (int i = stk->size + 1; i < stk->capacity; ++i)
-        {
-            if (isnan(stk->data[i])) 
-                fprintf(file, "\t\t[%d] = NAN (Poison!)\n", i);
-            else
-                fprintf(file, "\t\t[%d] = %lg\n", i, stk->data[i]);
-        }
-        break;
+            for (int i = stk->size + 1; i < stk->capacity; ++i)
+            {
+                if (isnan(stk->data[i])) 
+                    fprintf(file, "\t\t[%d] = NAN (Poison!)\n", i);
+                else
+                    fprintf(file, "\t\t[%d] = %lg\n", i, stk->data[i]);
+            }
 
-    case 2:
+
+    #else 
+    #ifdef INT_T
+
         for (int i = 0; i <= stk->size; ++i)
         {
             if (stk->data[i] == 0xBADDED)
@@ -219,9 +222,10 @@ void Print_array(FILE*file, struct Stack* stk)
             else
                 fprintf(file, "\t\t[%d] = %ld\n", i, stk->data[i]);
         }
-        break;
-    
-    case 3:
+
+    #else
+    #ifdef CHAR_T
+        
         for (int i = 0; i <= stk->size; ++i)
         {
             if (stk->data[i] == '\0')
@@ -237,27 +241,58 @@ void Print_array(FILE*file, struct Stack* stk)
             else
                 fprintf(file, "\t\t[%d] = %c\n", i, stk->data[i]);
         }
-        break;
+
+    #else
+    #ifdef POINTER_T
     
-    default:
-        fprintf(file, "\t\t Unknow type element\n");
-        break;
-    }
+        for (size_t i = 0; i <= stk->size; ++i)
+        {
+            if (stk->data[i] == nullptr)
+                fprintf(file, "\t\t*[%lu] = %s (Poison!)\n", i, Text_poison);
+            else
+                fprintf(file, "\t\t*[%lu] = \"%p\"\n", i, stk->data[i]);
+        }
+
+        for (size_t i = stk->size + 1; i < stk->capacity; ++i)
+        {
+            if (stk->data[i] == nullptr) 
+                fprintf(file, "\t\t[%lu] = %s (Poison!)\n", i, Text_poison);
+            else
+                fprintf(file, "\t\t[%lu] = %p\n", i, stk->data[i]);
+        }
+
+    #endif
+    #endif
+    #endif
+    #endif
 }
 
 int Comparator_poison(element_t element)
 {
-    switch(code_t)
-    {
-        case 1: return (isnan(element));
-        case 2: return (element == 0xBADDED);
-        case 3: return (element == '\0');
-    }
+    #ifdef DOUBLE_T
+      return (isnan(element));
+    #else
+
+    #ifdef INT_T
+        return (element == 0xBADDED);
+    #else
+
+    #ifdef CHAR_T
+        return (element == '\0');
+    #else
+
+    #ifdef POINTER_T
+        return (element == nullptr);
+    #endif
+
+    #endif
+    #endif
+    #endif    
 }
 
 void Placing_canary(struct Stack* stk, void* temp)
 {
-    NULL_check(stk);
+    Stack_null_check(stk);
     assert(temp != nullptr);
 
     canary_t* canary_array_left = (canary_t*) temp;
@@ -273,9 +308,11 @@ unsigned int Stack_HASHFAQ6(struct Stack* stk)
 {
     unsigned int hash = 0;
 
-    for (int i = 0; i < stk->capacity; ++i)
-    {
-        hash += (unsigned char)(stk->data[i]);
+    #ifndef POINTER_T
+    for (int element = 0; element < stk->capacity; ++element)
+    {   
+        for (int symbol = 0; element < sizeof(element_t); ++element)
+        hash += ((unsigned char*)&(stk->data[element]))[symbol];
         hash += (hash << 10);
         hash ^= (hash >> 6);
     }
@@ -295,6 +332,34 @@ unsigned int Stack_HASHFAQ6(struct Stack* stk)
         hash += (hash << 10);
         hash ^= (hash >> 6);
     }
+
+    #else
+    for (int element = 0; element < stk->capacity; ++element)
+    {   
+        for (int symbol = 0; element < sizeof(element_t); ++element)
+        hash += ((unsigned char*)&(stk->data[element]))[symbol];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+
+
+    size_t limit = 2 * sizeof(size_t) + sizeof(int) + sizeof(element_t*) + sizeof(canary_t) + sizeof(char*);
+    
+    for (int i = 0; i < limit; ++i)
+    {
+        hash += (unsigned char)(*((char*)stk + i));
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+
+    for (int i = 0; i < sizeof(canary_t); ++i)
+    {
+        hash += (unsigned char)(*((char*)stk + limit + 2 * sizeof(unsigned int) + i));
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    #endif
+
 
     hash += (hash << 3);
     hash ^= (hash >> 11);
@@ -331,15 +396,16 @@ unsigned int Struct_stack_HASHFAQ6(struct Stack* stk)
 
 int Stack_is_destructed(struct Stack* stk)
 {
-    if  ((stk->data  == nullptr)           &&
-         (stk->size  == -1)                &&
-         (stk->error ==  0)                &&
-         (stk->capacity    == -1)          &&
-         (stk->struct_hash ==  0)          &&
-         (stk->stack_hash  ==  0)          &&
-         (stk->canary_struct_left  == -1)  &&
-         (stk->canary_struct_right == -1))
+    if  ((stk->data                == nullptr)       &&
+         (stk->size                == (size_t)-1)    &&
+         (stk->error               ==  0)            &&
+         (stk->capacity            == (size_t)-1)    &&
+         (stk->struct_hash         ==  0)            &&
+         (stk->stack_hash          ==  0)            &&
+         (stk->canary_struct_left  == (canary_t)-1)  &&
+         (stk->canary_struct_right == (canary_t)-1))
         return 1;
     else 
         return 0;
 }
+

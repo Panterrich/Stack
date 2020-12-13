@@ -9,6 +9,10 @@
 
 #define DOUBLE_T
 
+#ifdef POINTER_T
+    typedef void* element_t;
+#endif
+
 #ifdef DOUBLE_T
     typedef double element_t;
 #endif
@@ -21,7 +25,7 @@
     typedef char element_t;
 #endif
 
-#define STACK_CONSTUCT(stk, capacity) (stk)->name = #stk;               \
+#define STACK_CONSTRUCT(stk, capacity) (stk)->name = #stk;               \
                                       Stack_construct(stk, capacity)
 
 //===================================================
@@ -49,6 +53,8 @@ struct Stack
 //===================================================
 
 void Stack_construct(struct Stack* stk, long capacity);
+
+struct Stack* Stack_clone(struct Stack* old_stack);
 
 void Stack_push(struct Stack* stk, element_t element);
 
