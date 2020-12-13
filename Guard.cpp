@@ -1,5 +1,4 @@
 #include "Guard.h"
-#include "../Differentiator.h"
 //===================================================
 
 void Stack_null_check(struct Stack* stk)
